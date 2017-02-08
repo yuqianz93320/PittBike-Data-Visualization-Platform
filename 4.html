@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Map</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/simple-sidebar.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+<meta charset="utf-8"/>
+      <script type="text/javascript" src="4/d3/d3.v3.js"></script>
+    <script type="text/javascript" src="4/d3/d3.js"></script>
+    <script type="text/javascript" src="4/d3/d3.csv.js"></script>
+    <script type="text/javascript" src="4/d3/d3.geo.js"></script>
+    <script type="text/javascript" src="4/d3/d3.geom.js"></script>
+    <script src="https://d3js.org/d3-geo.v1.min.js"></script>
+<script src="https://d3js.org/d3.geo.projection.v1.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+    <style type="text/css">
+
+#states path {
+  fill: #002855;
+  stroke: #fff;
+}
+.background {
+  fill: none;
+  pointer-events: all;
+}
+path.arc {
+  pointer-events: none;
+  fill: none;
+  stroke:#BA0C2E;
+  display: none;
+}
+
+path.cell {
+  fill: none;
+  pointer-events: all;
+}
+
+circle {
+  fill: #FFDE00;
+  fill-opacity: .8;
+  stroke: #fff;
+}
+
+#cells.voronoi path.cell {
+  stroke: #C5B358;
+}
+
+#cells g:hover path.arc {
+  display: inherit;
+}
+.subunit-label {
+  fill: #fff;
+  fill-opacity: .9;
+  font-size: 9px;
+  font-weight: 300;
+  text-anchor: middle;
+}
+    </style>
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <h1 style="color:#F4BE3F;" href="#">
+                        PittBike</h1>
+                </li>
+                <li>
+                    <p style="color:#E9D9AD;font-size:12px;">Visualization for Pittsburgh Bike-Share</p>
+                <li><hr>
+
+                    <a style="color:#F4BE3F;" href="4.html">Station overview</a>
+                </li>
+                <li>
+                    <a style="color:#F4BE3F;" href="2.html">Bike balance viz</a>
+                </li>
+                <li>
+                    <a style="color:#F4BE3F;" href="3.html">Trip period frequency viz</a>
+                </li>
+                <li>
+                    <a style="color:#F4BE3F;"  href="1.html">Trip duration viz</a>
+                </li>
+
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div id="body1">
+      <div id="footer">
+        <h2>Pittsburgh Health Ride Station, 2015.07-2016.09
+        <br/>Station Name :</h2>
+      <div id="station" style="color:#F00">
+
+          <span></span>
+      </div>
+
+
+        <div class="hint">
+          <i>mouseover for checking the stations</i>
+        </div>
+        <div style="font-size:12px;line-height:60px;"><input type="checkbox" id="voronoi"> <label for="voronoi">show Voronoi</label></div>
+      </div>
+    </div>
+    <div id="chart1">
+    </div>
+
+    <script type="text/javascript">
+
+var w = 900,
+    h = 600;
+
+
+    var projection = d3.geoAlbers()
+    .center([0, 40.4417])
+    // Refers to the latitude of the Pittsburgh
+    .rotate([80.0000, 0])
+    .scale(250000)
+      // https://github.com/mbostock/d3/wiki/Geo-Projections#wiki-translate
+    .translate([w / 2, h/ 2]);
+      // https://github.com/mbostock/d3/wiki/Geo-Projections#wiki-scale
+
+      // Refers to the longitude of the Pittsburgh
+      // putting a transition and duration makes this zooming a bit smoother
+      var zoom = d3.behavior.zoom()
+          .translate(projection.translate())
+          .scale(projection.scale())
+          .scaleExtent([h, 8 * h])
+          .on("zoom", zoomed);
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var svg = d3.select("#chart1").append("svg:svg")
+    .attr("width", w)
+    .attr("height", h);
+
+    var g = svg.append("g")
+        .call(zoom);
+
+    g.append("rect")
+        .attr("class", "background")
+        .attr("width", w)
+        .attr("height", h);
+
+var states = svg.append("svg:g")
+    .attr("id", "states");
+
+var circles = svg.append("svg:g")
+    .attr("id", "circles");
+
+var cells = svg.append("svg:g")
+    .attr("id", "cells");
+
+d3.select("input[type=checkbox]").on("change", function() {
+  cells.classed("voronoi", this.checked);
+});
+
+d3.json("4/pittsburgh.geojson", function(collection) {
+  states.selectAll("path")
+      .data(collection.features)
+    .enter().append("svg:path")
+    .attr("class", function(d) {return "subunit " + d.properties.name.replace(". ","_").split(' ').join('_') ; })
+    .attr("d", path)
+     .on("click", clicked);
+
+       states.append("path")
+     .datum(topojson.mesh(collection, collection.features, function(a, b) { return a !== b; }))
+     .attr("id", "state-borders")
+     .attr("d", path);
+
+     // Label (text) each neighborhood
+    states.selectAll(".subunit-label")
+         .data(collection.features)
+            .enter().append("text")
+            .attr("class", "subunit-label")
+            .attr("x", function(d) { return path.centroid(d)[0]; })
+            .attr("y", function(d) { return path.centroid(d)[1]; })
+            //.style("text-rendering","geometricPrecision")
+            .text(function(d) { return d.properties.name; });
+
+});
+
+d3.csv("4/flights-airport.csv", function(flights) {
+  var linksByOrigin = {},
+      countByAirport = {},
+      locationByAirport = {},
+      positions = [];
+
+  var arc = d3.geo.greatArc()
+      .source(function(d) { return locationByAirport[d.source]; })
+      .target(function(d) { return locationByAirport[d.target]; });
+
+  flights.forEach(function(flight) {
+    var origin = flight.origin,
+        destination = flight.destination,
+        links = linksByOrigin[origin] || (linksByOrigin[origin] = []);
+    links.push({source: origin, target: destination});
+    countByAirport[origin] = (countByAirport[origin] || 0) + 1;
+    countByAirport[destination] = (countByAirport[destination] || 0) + 1;
+  });
+
+  d3.csv("4/airports.csv", function(airports) {
+
+    // Only consider airports with at least one flight.
+    airports = airports.filter(function(airport) {
+      if (countByAirport[airport.iata]) {
+        var location = [+airport.longitude, +airport.latitude];
+        locationByAirport[airport.iata] = location;
+        positions.push(projection(location));
+        return true;
+      }
+    });
+
+    // Compute the Voronoi diagram of airports' projected positions.
+    var polygons = d3.geom.voronoi(positions);
+
+    var g = cells.selectAll("g")
+        .data(airports)
+      .enter().append("svg:g")
+      .call(zoom);
+
+    g.append("svg:path")
+        .attr("class", "cell")
+        .attr("d", function(d, i) { return "M" + polygons[i].join("L") + "Z"; })
+      //  .on("mouseover", function(d, i) { d3.select("#footer span").text(d.name); })
+        .on("mouseover", function(d, i) { d3.select("#station span").text(d.name); })
+
+
+    g.selectAll("path.arc")
+        .data(function(d) { return linksByOrigin[d.iata] || []; })
+      .enter().append("svg:path")
+        .attr("class", "arc")
+        .attr("d", function(d) { return path(arc(d)); });
+
+    circles.selectAll("circle")
+        .data(airports)
+      .enter().append("svg:circle")
+        .attr("cx", function(d, i) { return positions[i][0]; })
+        .attr("cy", function(d, i) { return positions[i][1]; })
+        .attr("r", function(d, i) { return Math.sqrt(countByAirport[d.iata]/16); })
+        .sort(function(a, b) { return countByAirport[b.iata] - countByAirport[a.iata]; });
+  });
+});
+
+function clicked(d) {
+  var centroid = path.centroid(d),
+      translate = projection.translate();
+
+  projection.translate([
+    translate[0] - centroid[0] + width / 2,
+    translate[1] - centroid[1] + height / 2
+  ]);
+
+  zoom.translate(projection.translate());
+
+  svg.append("g")
+    .call(zoom).selectAll("path").transition()
+      .duration(700)
+      .attr("d", path);
+}
+
+function zoomed() {
+  projection.translate(d3.event.translate).scale(d3.event.scale);
+  svg.append("g")
+    .call(zoom).selectAll("path").attr("d", path);
+}
+
+    </script>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    </script>
+
+</body>
+
+</html>

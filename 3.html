@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Circle Heat Map</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/simple-sidebar.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script src="3/d3.v3.min.js"></script>
+    <script src="3/circularHeatChart.js" charset="utf-8"></script>
+
+    <style type="text/css">
+    svg {
+    width: 500px;
+    height: 500px;
+    }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <h1 style="color:#F4BE3F;" href="#">
+                        PittBike</h1>
+                </li>
+                <li>
+                    <p style="color:#E9D9AD;font-size:12px;">Visualization for Pittsburgh Bike-Share</p>
+                <li><hr>
+
+                    <a style="color:#F4BE3F;" href="4.html">Station overview</a>
+                </li>
+                <li>
+                    <a style="color:#F4BE3F;" href="2.html">Bike balance viz</a>
+                </li>
+                <li>
+                    <a style="color:#F4BE3F;" href="3.html">Trip period frequency viz</a>
+                </li>
+                <li>
+                    <a style="color:#F4BE3F;"  href="1.html">Trip duration viz</a>
+                </li>
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                      <div style="float:left"><table><tr><td><font size=4px> &nbsp Circular heat chart for rental trip period frequency  </td></tr></table></div>
+
+<br/><br/><br/>
+
+                    <div id="chart1"></div>
+<div style="float:left"><table><tr><td><font size=4px> &nbsp Circular heat chart for borrow trip period frequency &nbsp&nbsp</font></td></tr></table></div>
+                  <br/><br/><br/>
+                    <div id="chart2"></div>
+
+
+                    <!-- <div id="info1">Put mouse over image to check value</div> </br>
+                    <div id="chart2"></div>
+                    <div id="info2">Put mouse over image to check value</div> -->
+                    <script>
+                    //from data
+                    var time=["Mon00","Mon01","Mon02","Mon03","Mon04","Mon05",
+                    "Mon06","Mon07","Mon08","Mon09","Mon10","Mon11","Mon12",
+                    "Mon13","Mon14","Mon15","Mon16","Mon17","Mon18","Mon19","Mon20","Mon21","Mon22","Mon23","Tue00","Tue01","Tue02","Tue03","Tue04","Tue05","Tue06","Tue07","Tue08","Tue09","Tue10","Tue11","Tue12","Tue13","Tue14","Tue15","Tue16","Tue17","Tue18","Tue19","Tue20","Tue21","Tue22","Tue23","Wes00","Wes01","Wes02","Wes03","Wes04","Wes05","Wes06","Wes07","Wes08","Wes09","Wes10","Wes11","Wes12","Wes13","Wes14","Wes15","Wes16","Wes17","Wes18","Wes19","Wes20","Wes21","Wes22","Wes23","Thu00","Thu01","Thu02","Thu03","Thu04","Thu05","Thu06","Thu07","Thu08","Thu09","Thu10","Thu11","Thu12","Thu13","Thu14","Thu15","Thu16","Thu17","Thu18","Thu19","Thu20","Thu21","Thu22","Thu23","Fri00","Fri01","Fri02","Fri03","Fri04","Fri05","Fri06","Fri07","Fri08","Fri09","Fri10","Fri11","Fri12","Fri13","Fri14","Fri15","Fri16","Fri17","Fri18","Fri19","Fri20","Fri21","Fri22","Fri23","Sat00","Sat01","Sat02","Sat03","Sat04","Sat05","Sat06","Sat07","Sat08","Sat09","Sat10","Sat11","Sat12","Sat13","Sat14","Sat15","Sat16","Sat17","Sat18","Sat19","Sat20","Sat21","Sat22","Sat23","Sun00","Sun01","Sun02","Sun03","Sun04","Sun05","Sun06","Sun07","Sun08","Sun09","Sun10","Sun11","Sun12","Sun13","Sun14","Sun15","Sun16","Sun17","Sun18","Sun19","Sun20","Sun21","Sun22","Sun23"
+                    ];
+                    var data1=[105,78,61,19,34,88,145,540,774,578,633,852,895,909,901,948,1207,1413,1169,909,576,374,271,188,93,62,50,15,19,96,187,560,889,624,539,653,861,809,778,826,1135,1562,1301,925,716,437,285,180
+                      ,98,51,33,14,20,131,182,567,903,613,567,736,953,921,843,869,1275,1840,1490,1139,717,524,365,268,117,93,38,26,17,92,185,645,867,607,600,692,911,780,806,866,1081,1564,1231,967,694,472,380,284,159
+                      ,70,62,31,27,76,171,551,808,603,631,890,1128,1028,1007,1068,1402,1548,1217,1025,697,537,472,318,289,189,150,58,42,36,93,213,366,746,1324,1725,1884,2139,2151,2012,1775,1318,1095,1007,709,501,448,343,287,175
+                      ,169,76,37,54,86,258,483,856,1208,1620,1821,1748,1843,1755,1655,1480,1156,917,619,360,277,177];
+                    //to data
+                    var data2=[149,63,62,48,29,47,149,432,788,504,470,708,880,879,882,901,1165,1438,1141,957,736,477,277,248,129,70,59,20,24,41,165,457,869,634,490,527,765,824,738,843,975,1489,1254,963,846,543,348,204,
+                      132,53,38,18,18,74,178,458,905,603,465,644,873,891,829,826,1163,1635,1450,1216,923,636,429,285,164,93,50,24,25,45,169,519,890,587,553,570,770,848,743,888,984,1484,1199,1009,782,558,421,331,196,
+                      89,73,42,22,48,148,458,797,561,518,672,1001,1016,929,1051,1338,1556,1197,1058,893,601,523,371,292,211,163,89,56,32,67,162,242,442,754,1244,1599,1930,1979,2176,1952,1785,1290,1119,940,604,551,386,296,212,
+                      194,100,52,53,69,137,240,552,884,1317,1530,1770,1667,1836,1799,1717,1330,1202,809,558,326,243];
+
+                      var tooltip1 = d3.select("#chart1")
+                      		                .append("div")
+                      		                .attr("id", "tt")
+                      		                .style("z-index", "10")
+                      		                .style("position", "absolute")
+                      		                .style("visibility", "hidden");
+                    var circle1=[];
+                    for(var i=0;i<168;i++)
+                    circle1[i]={date:time[i],value:data1[i]};
+
+                    var circle2=[];
+                    for(var i=0;i<168;i++)
+                    circle2[i]={date:time[i],value:data2[i]};
+
+
+
+
+                    var chart1 = circularHeatChart()
+                    .segmentHeight(20)
+                    .innerRadius(80)
+                    .range(["white","#FDB827"])
+                    .accessor(function(d) {return d.value;})
+                    .radialLabels(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+                    .segmentLabels(["Midnight", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am",
+                    "11am", "Midday", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"]);
+
+
+                    var chart2 = circularHeatChart()
+                    .segmentHeight(20)
+                    .innerRadius(80)
+                    .range(["white","Navy"])
+                    .accessor(function(d) {return d.value;})
+                    .radialLabels(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+                    .segmentLabels(["Midnight", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am",
+                    "11am", "Midday", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"]);
+
+                    d3.select('#chart1')
+                    .selectAll('svg')
+                    .data([circle1])
+                    .enter()
+                    .append('svg')
+                    .call(chart1);
+
+                    d3.select('#chart2')
+                    .selectAll('svg')
+                    .data([circle2])
+                    .enter()
+                    .append('svg')
+                    .call(chart2);
+
+                    d3.selectAll("#chart1 path")
+                    			    .on('mouseover', function(d){
+                    			    	return mouseover1(d, this);
+                    			    })
+                    			    .on('mousemove', function(d){
+                    			    	console.log(this);
+                    			    	var m = d3.mouse(this);
+                    	                mx = m[0];
+                    	                my = m[1];
+                    	                return mousemove1(mx, my, d);
+                    			    })
+                    			    .on('mouseout', function(d){
+                    			    	return mouseout1(d, this);
+                    			    });
+
+                              function mouseover1(v, selected){
+                          	            // var d = d3.select(selected).data()[0];
+                          	            // d3.select("#detail")
+                          	            //   .text(d.date + ' has ' + d.ridesNo + ' rides in total.')
+                          	            //   .style("text-anchor", "middle");
+                          				return tooltip1.style("visibility", "visible");
+                          			}
+
+                    			function mousemove1(mx, my, d){
+                    		    	return tooltip1.style("top", 0  + "px")
+                    		                  .style("left", 500 + "px")
+                    		                  .html("<div id='tipContainer'><div id='tipLocation'><b>Date: "
+                    		                  + d.date  + "</b></div><div id='tipKey'> From Count: <b>"
+                    		                  + d.value
+                    		                  + "</b><br></div><div class='tipClear'></div> </div>");
+                    			}
+
+                    			function mouseout1(v, selected){
+                    				return tooltip1.style("visibility", "hidden");
+                    			}
+
+
+                          var tooltip2 = d3.select("#chart2")
+                          		                .append("div")
+                          		                .attr("id", "tt")
+                          		                .style("z-index", "10")
+                          		                .style("position", "absolute")
+                          		                .style("visibility", "hidden");
+
+                                              d3.selectAll("#chart2 path")
+                                              			    .on('mouseover', function(d){
+                                              			    	return mouseover2(d, this);
+                                              			    })
+                                              			    .on('mousemove', function(d){
+                                              			    	console.log(this);
+                                              			    	var m = d3.mouse(this);
+                                              	                mx = m[0];
+                                              	                my = m[1];
+                                              	                return mousemove2(mx, my, d);
+                                              			    })
+                                              			    .on('mouseout', function(d){
+                                              			    	return mouseout2(d, this);
+                                              			    });
+                                                        function mouseover2(v, selected){
+                                                                  // var d = d3.select(selected).data()[0];
+                                                                  // d3.select("#detail")
+                                                                  //   .text(d.date + ' has ' + d.ridesNo + ' rides in total.')
+                                                                  //   .style("text-anchor", "middle");
+                                                            return tooltip2.style("visibility", "visible");
+                                                          }
+
+                                                      function mousemove2(mx, my, d){
+                                                        return tooltip2.style("bottom", 0  + "px")
+                                                                    .style("left", 500 + "px")
+                                                                    .html("<div id='tipContainer'><div id='tipLocation'><b>Date: "
+                                                                    + d.date + "</b></div><div id='tipKey'> To Count: <b>"
+                                                                    + d.value
+                                                                    + "</b><br></div><div class='tipClear'></div> </div>");
+                                                      }
+
+                                                      function mouseout2(v, selected){
+                                                      return tooltip2.style("visibility", "hidden");
+                                                      }
+
+                    </script>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    </script>
+
+</body>
+
+</html>
