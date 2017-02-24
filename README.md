@@ -3,7 +3,7 @@
 
 #### [Data Resource](https://healthyridepgh.com/data/)
 #### [Demo](http://picso.org:8889/~classinfovis2016fall/projects/group-14/4.html)
-#### [Slides Selection](https://github.com/yuqianz93320/PittBike-Data-Visualization-Platform/blob/master/Pittbike%20Slides%20Selections.pdf)
+#### [Slides Selection](https://github.com/yuqianz93320/PittBike-Data-Visualization-Platform/blob/master/DV_Final%20project%20slides%20selections.pdf)
 
 
 ### Abstract
